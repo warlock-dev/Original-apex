@@ -1,0 +1,22 @@
+{
+  "id": "./",
+  "name": "APEX — SSC CGL Study Tracker",
+  "short_name": "APEX",
+  "description": "Offline SSC CGL 2026 syllabus tracker, spaced-repetition recall and focus timer.",
+  "start_url": "./#command",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0C0D0E",
+  "theme_color": "#0C0D0E",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Quick recall", "url": "./#recall", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+    {"name": "Focus timer", "url": "./#focus", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]}
+  ]
+}
