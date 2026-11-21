@@ -1,5 +1,5 @@
 /* APEX service worker — offline app shell. Bump VERSION when you replace index.html. */
-const VERSION = 'apex-v2.1';
+const VERSION = 'apex-v3.0';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './apple-touch-icon.png', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './favicon-32.png'];
 
 self.addEventListener('install', e => {

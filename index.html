@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>APEX — SSC CGL Tracker</title>
-<meta name="description" content="APEX — offline-first SSC CGL 2026 active-recall study and syllabus tracker.">
+<meta name="description" content="APEX — offline-first SSC CGL 2026 study, retention and syllabus tracker.">
 <meta name="theme-color" content="#0C0D0E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -391,6 +391,7 @@ button.kpi{cursor:pointer}button.kpi:hover{border-color:var(--border-strong)}
 .cal-links a span{font-size:12px;color:var(--text-secondary);font-weight:400}
 .integrity{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .minitimer[hidden]{display:none}
+@media(max-width:600px){.pq li{flex-wrap:wrap}.pq li>.row{width:100%;padding-left:30px}}
 </style>
 </head>
 <body>
@@ -417,7 +418,7 @@ button.kpi{cursor:pointer}button.kpi:hover{border-color:var(--border-strong)}
       <div class="rank" id="rank"></div>
       <div id="heroWrap"></div>
       <div class="quick">
-        <button data-action="quick5"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Quick 5 recall</button>
+        <button data-action="revise-weakest"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Revise weakest</button>
         <button data-action="goto-focus"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>Focus timer</button>
         <button data-action="quick-mistake"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Log a mistake</button>
       </div>
@@ -427,7 +428,7 @@ button.kpi{cursor:pointer}button.kpi:hover{border-color:var(--border-strong)}
           <div class="card-head"><h2 id="questH">Today’s quests</h2><span class="pill" id="xpToday"></span></div>
           <div class="goals" id="goals"></div>
           <div id="quests"></div>
-          <p class="tiny muted" style="margin-top:8px">A day counts toward your streak with 5+ due cards cleared or 20+ minutes of focus. Every 7-day streak earns a freeze (max 2) that saves one missed day.</p>
+          <p class="tiny muted" style="margin-top:8px">A day counts toward your streak with 20+ minutes of study. Every 7-day streak earns a freeze (max 2) that saves one missed day.</p>
         </section>
         <section class="card" aria-labelledby="pqH">
           <div class="card-head"><h2 id="pqH">Priority queue</h2><span class="pill" id="pqCount"></span></div>
@@ -435,7 +436,7 @@ button.kpi{cursor:pointer}button.kpi:hover{border-color:var(--border-strong)}
         </section>
         <section class="card" aria-labelledby="calH">
           <button class="disc-head" aria-expanded="false" aria-controls="calBody" data-action="toggle" data-target="calBody">
-            <span><h2 id="calH">Don’t-forget kit</h2><span class="tiny muted">Google Calendar reminders for due recall</span></span>
+            <span><h2 id="calH">Don’t-forget kit</h2><span class="tiny muted">Google Calendar reminders for topics due for revision</span></span>
             <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
           </button>
           <div class="collapse" id="calBody" inert><div><div class="collapse-pad" id="calKit"></div></div></div>
@@ -450,7 +451,7 @@ button.kpi{cursor:pointer}button.kpi:hover{border-color:var(--border-strong)}
               <label class="field"><span><b>Wish</b> — the weekly SSC CGL target</span><textarea id="woopWish" placeholder="e.g. Finish Geometry + Trigonometry and hit 40/50 in Quant sectionals"></textarea></label>
               <label class="field"><span><b>Outcome</b> — how it feels when achieved</span><textarea id="woopOutcome" placeholder="e.g. Confident on 8–10 Quant questions I currently skip"></textarea></label>
               <label class="field"><span><b>Obstacle</b> — the inner blocker</span><textarea id="woopObstacle" placeholder="e.g. Phone scrolling after lunch; avoiding hard GA revision"></textarea></label>
-              <label class="field"><span><b>Plan</b> — if obstacle, then…</span><textarea id="woopPlan" placeholder="If I reach for my phone after lunch, then I open APEX and run Quick 5 first."></textarea></label>
+              <label class="field"><span><b>Plan</b> — if obstacle, then…</span><textarea id="woopPlan" placeholder="If I reach for my phone after lunch, then I open APEX and revise one fading topic first."></textarea></label>
             </div>
             <p class="tiny muted" style="margin-top:10px">Saves automatically.</p>
           </div></div></div>
@@ -513,44 +514,9 @@ button.kpi{cursor:pointer}button.kpi:hover{border-color:var(--border-strong)}
       <div id="syTree"></div>
     </section>
 
-    <!-- RECALL -->
-    <section class="view" id="view-recall" role="tabpanel" aria-labelledby="tab-recall" tabindex="-1">
-      <div class="view-head"><h1>Recall</h1><p class="lede" id="rcLede"></p></div>
-      <div class="rc-bar">
-        <label class="sr" for="rcSubject">Filter deck by subject</label>
-        <select id="rcSubject"></select>
-        <label class="switch-row"><input type="checkbox" class="switch" id="rcDue" role="switch" checked> Due only</label>
-      </div>
-      <div class="studio" id="studio"></div>
-      <div class="stack-y">
-        <section class="card" aria-labelledby="addH">
-          <button class="disc-head" aria-expanded="false" aria-controls="addCardBody" data-action="toggle" data-target="addCardBody">
-            <h2 id="addH"><span id="addTitle">Add new card</span></h2>
-            <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="collapse" id="addCardBody" inert><div><form class="collapse-pad" id="cardForm" novalidate>
-            <div class="form-grid">
-              <label class="field full">Front — prompt<textarea id="cfFront" required placeholder="e.g. Centroid divides each median in what ratio?"></textarea></label>
-              <label class="field full">Back — answer / hint<textarea id="cfBack" required placeholder="e.g. 2 : 1 from the vertex"></textarea></label>
-              <label class="field">Subject<select id="cfSubject"></select></label>
-              <label class="field">Linked topic<select id="cfTopic"></select></label>
-            </div>
-            <div class="row" style="margin-top:12px"><button class="btn primary" type="submit" id="cfSubmit">Add card</button><button class="btn ghost" type="button" data-action="cancel-edit-card" id="cfCancel" hidden>Cancel edit</button></div>
-          </form></div></div>
-        </section>
-        <section class="card" aria-labelledby="deckH">
-          <button class="disc-head" aria-expanded="false" aria-controls="deckBody" data-action="toggle" data-target="deckBody">
-            <span><h2 id="deckH">Deck</h2><span class="tiny muted" id="deckMeta"></span></span>
-            <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="collapse" id="deckBody" inert><div><div class="collapse-pad" id="deckList"></div></div></div>
-        </section>
-      </div>
-    </section>
-
     <!-- ANALYTICS -->
     <section class="view" id="view-analytics" role="tabpanel" aria-labelledby="tab-analytics" tabindex="-1">
-      <div class="view-head"><h1>Analytics</h1><p class="lede">Where your hours go, what’s fading, and where momentum slips.</p></div>
+      <div class="view-head"><h1>Analytics</h1><p class="lede">Where your hours go, what’s fading, and where momentum slips. Retention is estimated from when and how often you study each topic.</p></div>
       <div class="stack-y">
         <section class="card" aria-labelledby="radarH"><div class="card-head"><h2 id="radarH">Drop-off risk radar</h2></div><div id="radar"></div></section>
         <section class="card" aria-labelledby="hoursH">
@@ -561,7 +527,6 @@ button.kpi{cursor:pointer}button.kpi:hover{border-color:var(--border-strong)}
         </section>
         <section class="card" aria-labelledby="subjHH"><div class="card-head"><h2 id="subjHH">Where the hours went · 30 days</h2></div><div id="subjHours"></div>
           <h3 style="margin:18px 0 8px;font-size:14px">When you focus best</h3><div id="hourOfDay"></div></section>
-        <section class="card" aria-labelledby="accH"><div class="card-head"><h2 id="accH">Recall accuracy · 7 days</h2></div><div id="accuracy"></div></section>
         <section class="card" aria-labelledby="heatH">
           <div class="card-head"><h2 id="heatH">12-week consistency</h2></div>
           <div class="stats4" id="heatStats"></div>
@@ -627,7 +592,6 @@ button.kpi{cursor:pointer}button.kpi:hover{border-color:var(--border-strong)}
   <button class="tab" role="tab" id="tab-command" aria-controls="view-command" data-view="command"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Today</button>
   <button class="tab" role="tab" id="tab-focus" aria-controls="view-focus" data-view="focus"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>Focus</button>
   <button class="tab" role="tab" id="tab-syllabus" aria-controls="view-syllabus" data-view="syllabus"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>Syllabus</button>
-  <button class="tab" role="tab" id="tab-recall" aria-controls="view-recall" data-view="recall"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="3" y="6" width="14" height="14" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v12"/></svg>Recall<span class="badge" id="recallBadge" hidden></span></button>
   <button class="tab" role="tab" id="tab-analytics" aria-controls="view-analytics" data-view="analytics"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</button>
   <button class="tab" role="tab" id="tab-journal" aria-controls="view-journal" data-view="journal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M9 10h6M9 14h6"/></svg>Journal</button>
 </nav>
@@ -652,8 +616,7 @@ button.kpi{cursor:pointer}button.kpi:hover{border-color:var(--border-strong)}
   </div>
   <div class="dsec"><h3>Daily goals</h3>
     <div class="form-grid">
-      <label class="field">Due reviews / day<input type="number" id="setRecallGoal" min="5" max="300" step="1" inputmode="numeric"></label>
-      <label class="field">Study minutes / day<input type="number" id="setStudyGoal" min="30" max="720" step="15" inputmode="numeric"></label>
+            <label class="field">Study minutes / day<input type="number" id="setStudyGoal" min="30" max="720" step="15" inputmode="numeric"></label>
     </div>
   </div>
   <div class="dsec"><h3>Focus timer</h3>
@@ -702,9 +665,12 @@ button.kpi{cursor:pointer}button.kpi:hover{border-color:var(--border-strong)}
       <textarea id="importText" aria-label="Paste backup" style="margin-top:8px" placeholder="Paste backup here"></textarea>
       <button class="btn sm" style="margin-top:8px" data-action="import-paste">Restore from pasted backup</button>
     </details>
-    <div class="row" style="margin-top:14px">
-      <button class="btn sm" data-action="clear-sample">Clear sample history</button>
-      <button class="btn sm danger" data-action="reset">Reset all data</button>
+    <div style="margin-top:14px">
+      <button class="btn sm danger" data-action="reset-ask" id="resetAsk">Erase all data…</button>
+      <div id="resetConfirm" hidden style="margin-top:10px;padding:14px;border-radius:12px;background:var(--coral-12)">
+        <p class="small" style="color:var(--ink-coral);font-weight:500">Erase every topic, session, hour, mock, journal entry and setting on this device<span id="resetSyncNote"></span>? This can’t be undone — export a backup first if unsure.</p>
+        <div class="row" style="margin-top:10px"><button class="btn sm" style="background:var(--accent-coral);color:var(--on-accent);border-color:transparent" data-action="reset">Yes, erase everything</button><button class="btn sm ghost" data-action="reset-cancel">Cancel</button></div>
+      </div>
     </div>
     <p class="tiny muted" style="margin-top:12px" id="storageNote"></p>
   </div>
@@ -717,7 +683,7 @@ button.kpi{cursor:pointer}button.kpi:hover{border-color:var(--border-strong)}
 /* =========================================================
    APEX v2 — core: utils, syllabus (from SSC CGL 2026 PDF), seed, storage
    ========================================================= */
-const KEY='apex_ssc_cgl_v1', DAY=86400000, VERSION=2;
+const KEY='apex_ssc_cgl_v1', DAY=86400000, VERSION=3;
 const APP_URL='https://claude.ai/artifact/5p6K4PejkfWzRqb2DNugRo';
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -811,89 +777,59 @@ function buildTopics(){
   });
   return out;
 }
-const blankDay=k=>({date:k,reviewsCount:0,reviewedIds:[],correct:0,again:0,practice:0,topicsStudied:0,studiedIds:[],newTopics:0,minutesLogged:0,focusMinutes:0,manualMinutes:0,subjectsTouched:[],xp:0,quests:[],journalXP:0,mockXP:0,destXP:0});
+const blankDay=k=>({date:k,topicsStudied:0,studiedIds:[],newTopics:0,revised:0,minutesLogged:0,focusMinutes:0,manualMinutes:0,subjectsTouched:[],xp:0,quests:[],journalXP:0,mockXP:0,destXP:0});
 
 function seedState(){
-  const topics=buildTopics(), td=today();
-  const T=(s,start)=>{const t=topics.find(x=>x.subject===s&&x.title.startsWith(start));if(!t)throw new Error('seed topic '+start);return t};
-  // sample progress: [subject, titleStart, status, confidence, daysAgo list]
-  [['quant','Percentages','Mastered',5,[2,6,9]],['quant','Ratio','Mastered',4,[8,12]],['quant','Simple Interest','Needs Review',2,[12]],['quant','Triangle & Its','Learning',3,[1]],
-   ['quant','Trigonometric Ratios','Learning',3,[9]],['quant','Standard Identities','Needs Review',2,[13]],['quant','Time & Work','Learning',2,[10]],
-   ['reasoning','Syllogism','Mastered',4,[3,11]],['reasoning','Coding','Learning',3,[7]],['reasoning','Blood Relations','Mastered',5,[11,12]],['reasoning','Seating','Needs Review',2,[12]],
-   ['english','Synonyms','Learning',3,[2]],['english','Active & Passive','Mastered',4,[8,9]],['english','Direct & Indirect','Learning',2,[9]],['english','One-Word','Learning',3,[1]],
-   ['ga','Constitution:','Learning',3,[7]],['ga','Fundamental Rights','Needs Review',2,[13]],['ga','Biology','Learning',2,[10]],['ga','National & International','Learning',3,[1]],
-   ['computer','Keyboard Shortcuts','Mastered',4,[8,11]],['computer','MS Excel','Learning',3,[8]],['computer','Protocols','Needs Review',2,[11]]
-  ].forEach(([s,t,st,c,ds])=>Object.assign(T(s,t),{status:st,confidence:c,lastStudiedAt:isoAt(ds[0]),studyDays:ds.map(d=>addDays(td,-d)).sort(),studyCount:ds.length,sample:true}));
-  T('ga','Fundamental Rights').subsDone=[0];T('quant','Triangle & Its').subsDone=[0,2];
-
-  // [subject, topicStart, front, back, interval, reps, ease, lapses, reviewedDaysAgo|null]
-  const CARDS=[
-    ['quant','Triangle & Its','The centroid divides each median in what ratio?','2 : 1, measured from the vertex.',1,1,2.5,0,1],
-    ['quant','Triangle & Its','In △ABC with incentre I, what is ∠BIC?','∠BIC = 90° + A/2\n(Orthocentre H: ∠BHC = 180° − A · Circumcentre O: ∠BOC = 2A)',3,2,2.2,1,4],
-    ['quant','Standard Identities','State the three Pythagorean trig identities.','sin²θ + cos²θ = 1\nsec²θ − tan²θ = 1\ncosec²θ − cot²θ = 1',1,0,2.1,2,1],
-    ['quant','Simple Interest','CI − SI on principal P for 2 years at r%?','P(r/100)²\nFor 3 years: P(r/100)²(3 + r/100)',2,1,2.0,2,13],
-    ['quant','Percentages','Net effect of successive changes of a% and b%?','a + b + ab/100 (negative sign for a decrease)',15,3,2.6,0,2],
-    ['quant','Unit Digits','Unit digit of 7^95?','Cycle of 7 is 7, 9, 3, 1 (length 4). 95 mod 4 = 3 → 3.',0,0,2.5,0,null],
-    ['quant','Time & Work','Pipe A fills a tank in 12 h, B empties it in 18 h. Both open — time to fill?','1/12 − 1/18 = 1/36 → 36 hours.',0,0,2.5,0,null],
-    ['reasoning','Syllogism','“Some A are B” — is “Some B are A” definitely true?','Yes. A particular affirmative (I) converts to I.',6,2,2.5,0,3],
-    ['reasoning','Syllogism','“All A are B” converts to what?','“Some B are A”. “All B are A” does NOT follow.',6,2,2.35,1,3],
-    ['reasoning','Blood Relations','Facing North, turn right, right again, then left. Which way now?','East. (N → E → S → left from S → E)',1,0,2.5,0,null],
-    ['english','One-Word','One word: a person who speaks many languages.','Polyglot (a linguist studies language scientifically).',4,1,2.65,0,1],
-    ['english','Active & Passive','Passive: “They are building a bridge.”','“A bridge is being built by them.” (is/are being + V3)',15,3,2.6,0,8],
-    ['english','Direct & Indirect','Indirect: He said, “I am tired.”','He said that he was tired. (past reporting verb → backshift)',1,0,2.3,1,9],
-    ['english','Question Tags','Tag for: “Let’s go for a walk, ___?”','“shall we?” — Let’s always takes “shall we”.',0,0,2.5,0,null],
-    ['ga','Fundamental Rights','Article 21 guarantees what?','Protection of life and personal liberty (includes Right to Privacy, Puttaswamy 2017).',2,1,2.2,1,13],
-    ['ga','Fundamental Rights','Which Article did Dr. Ambedkar call the “heart and soul” of the Constitution?','Article 32 — Right to Constitutional Remedies.',0,0,2.5,0,null],
-    ['ga','Constitutional & Statutory','Article 280 deals with which body?','Finance Commission — constituted by the President every five years.',0,0,2.5,0,null],
-    ['ga','Biology','Deficiency of which vitamin causes scurvy?','Vitamin C. Rickets → D · Night blindness → A · Beriberi → B1.',3,1,2.5,0,10],
-    ['ga','Banking & Monetary','What is the repo rate?','Rate at which RBI lends short-term to commercial banks against securities. Reverse repo: RBI borrows from banks.',0,0,2.5,0,null],
-    ['computer','MS Excel','Excel shortcuts: current date and current time?','Date: Ctrl + ;  ·  Time: Ctrl + Shift + ;  ·  AutoSum: Alt + =',6,2,2.5,0,8],
-    ['computer','Protocols','Default ports: HTTP, HTTPS, SMTP, FTP (control)?','HTTP 80 · HTTPS 443 · SMTP 25 · FTP 21',6,2,2.2,2,8],
-    ['computer','Security Threats','How does a worm differ from a virus?','A worm self-replicates across networks without a host file; a virus needs a host program and user action.',0,0,2.5,0,null]
-  ];
-  const cards=CARDS.map(([s,t,front,back,iv,reps,ef,lapses,ago],i)=>{const r=ago!==null;return{id:'card-seed-'+i,topicId:T(s,t).id,subject:s,front,back,easeFactor:ef,interval:iv,repetitions:reps,lapses,
-    dueDate:r?addDays(td,-ago+iv):td,lastReviewedAt:r?isoAt(ago,20):null,lastRating:r?(lapses?2:3):null,reviews:r?reps+lapses:0,sample:r||undefined}});
-  // 10 sample days incl. a 3-day drop-off gap (4–6 days ago). sessions: [hour, minutes, subject, topicStart, kind]
-  const plan={1:[[7,25,'quant','Triangle & Its'],[19,50,'english','One-Word'],[21,25,'ga','National & International']],2:[[6,25,'quant','Percentages'],[20,45,'english','Synonyms','manual']],3:[[18,50,'reasoning','Syllogism']],
-    7:[[7,50,'reasoning','Coding'],[21,30,'ga','Constitution:','manual']],8:[[6,50,'quant','Ratio'],[13,25,'english','Active & Passive'],[20,35,'computer','MS Excel']],9:[[7,25,'quant','Trigonometric Ratios'],[19,40,'english','Direct & Indirect','manual']],
-    10:[[8,25,'quant','Time & Work'],[22,35,'ga','Biology']],11:[[7,50,'reasoning','Blood Relations'],[20,25,'computer','Protocols']],12:[[6,25,'quant','Simple Interest'],[19,30,'reasoning','Seating']],13:[[7,25,'quant','Standard Identities'],[21,35,'ga','Fundamental Rights']]};
-  const reviews={1:14,2:11,3:9,7:12,8:16,9:10,10:8,11:13,12:7,13:9};
-  const sessions=[],activityLog=[];
-  Object.entries(plan).forEach(([ago,list])=>{
-    ago=+ago;const e=blankDay(addDays(td,-ago));e.sample=true;
-    list.forEach(([h,m,s,t,kind])=>{const tp=T(s,t),start=isoAt(ago,h,5);sessions.push({id:uid('s'),start,end:new Date(Date.parse(start)+m*60000).toISOString(),minutes:m,topicId:tp.id,subject:s,kind:kind||'timer',focus:kind?null:[4,3,5,4][h%4],sample:true});
-      e.minutesLogged+=m;kind?e.manualMinutes+=m:e.focusMinutes+=m;if(!e.subjectsTouched.includes(s))e.subjectsTouched.push(s);if(!e.studiedIds.includes(tp.id))e.studiedIds.push(tp.id)});
-    e.topicsStudied=e.studiedIds.length;e.reviewsCount=reviews[ago];e.correct=Math.round(e.reviewsCount*.78);e.again=e.reviewsCount-e.correct;
-    e.xp=e.focusMinutes+Math.floor(e.manualMinutes/4)+e.reviewsCount*2+e.correct+e.topicsStudied*3;activityLog.push(e);
-  });
   return {
     version:VERSION,meta:{createdAt:new Date().toISOString(),savedAt:0},
-    settings:{theme:'dark',tier1Date:'',tier2Date:'',dailyRecallGoal:30,dailyStudyMinutes:240,focusMin:25,breakMin:5,preset:'classic',autoBreak:true,sound:true,remindTime:'07:30'},
+    settings:{theme:'dark',tier1Date:'',tier2Date:'',dailyStudyMinutes:240,focusMin:25,breakMin:5,preset:'classic',autoBreak:true,sound:true,remindTime:'07:30'},
     woop:{wish:'',outcome:'',obstacle:'',plan:'',updatedAt:null},
-    topics,cards,activityLog,sessions,
+    topics:buildTopics(),activityLog:[],sessions:[],
     timer:{phase:'idle',start:0,dur:0,pausedAt:null,paused:0,topicId:'',cycle:0,next:'focus'},
     streak:{freezes:0,frozen:[],earned:[],checked:''},
-    calendar:{events:{},lastSync:null},
-    mockLogs:[
-      {id:'mock-s1',date:addDays(td,-12),tier:'Tier-I · Quant (15 min)',score:31,maxScore:50,notes:'Ran out of time on geometry; skipped 4.',sample:true},
-      {id:'mock-s2',date:addDays(td,-8),tier:'Tier-I · Full mock',score:128.5,maxScore:200,notes:'GA weakest (24/50). Reasoning strong.',sample:true},
-      {id:'mock-s3',date:addDays(td,-2),tier:'Tier-I · Quant (15 min)',score:38.5,maxScore:50,notes:'Better pacing; 3 silly errors in percentage.',sample:true}],
-    destLogs:[{id:'dest-s1',date:addDays(td,-8),keyDepressions:1720,accuracyPct:94.2,durationMin:15,sample:true}],
-    journal:[
-      {id:'j-s1',createdAt:isoAt(8,21),tag:'Mock Post-Mortem',subject:'ga',body:'Full mock: **128.5/200**. GA dragged at 24/50.\n\n- Polity questions on Articles were guessable but I second-guessed.\n- Static GK (awards) — zero revision so far.\n\nDecision: 20 GA recall cards daily for the next 10 days.',sample:true},
-      {id:'j-s2',createdAt:isoAt(2,22),tag:'Mistake Log',subject:'quant',body:'Successive percentage change: forgot the `ab/100` term again. Added a recall card. Also misread “decrease” as increase — slow down on sign conventions.',sample:true}]
+    mockLogs:[],destLogs:[],journal:[]
   };
 }
-
+/* Sample progress that v2 shipped with: [subject, titleStart, daysAgo relative to install]. Used once to strip it out. */
+const V2_SAMPLE=[['quant','Percentages',[2,6,9]],['quant','Ratio',[8,12]],['quant','Simple Interest',[12]],['quant','Triangle & Its',[1]],['quant','Trigonometric Ratios',[9]],['quant','Standard Identities',[13]],['quant','Time & Work',[10]],
+  ['reasoning','Syllogism',[3,11]],['reasoning','Coding',[7]],['reasoning','Blood Relations',[11,12]],['reasoning','Seating',[12]],['english','Synonyms',[2]],['english','Active & Passive',[8,9]],['english','Direct & Indirect',[9]],['english','One-Word',[1]],
+  ['ga','Constitution:',[7]],['ga','Fundamental Rights',[13]],['ga','Biology',[10]],['ga','National & International',[1]],['computer','Keyboard Shortcuts',[8,11]],['computer','MS Excel',[8]],['computer','Protocols',[11]]];
+function stripSample(s){
+  // remove everything the demo data created, keep what the user actually did
+  const keep=x=>x&&!x.sample;
+  s.sessions=(s.sessions||[]).filter(keep);
+  s.mockLogs=(s.mockLogs||[]).filter(keep);s.destLogs=(s.destLogs||[]).filter(keep);s.journal=(s.journal||[]).filter(keep);
+  const base=s.meta&&s.meta.createdAt&&!isNaN(Date.parse(s.meta.createdAt))?dkey(new Date(s.meta.createdAt)):today();
+  const sampleDays=new Set();
+  (s.activityLog||[]).forEach(a=>{if(a&&a.sample)sampleDays.add(a.date)});
+  // rebuild those days from the user's own sessions only
+  s.activityLog=(s.activityLog||[]).filter(a=>a&&!a.sample);
+  sampleDays.forEach(k=>{const own=s.sessions.filter(x=>dkey(new Date(x.start))===k);if(!own.length)return;const e=blankDay(k);
+    own.forEach(x=>{e.minutesLogged+=x.minutes;x.kind==='timer'?e.focusMinutes+=x.minutes:e.manualMinutes+=x.minutes;if(x.subject&&!e.subjectsTouched.includes(x.subject))e.subjectsTouched.push(x.subject);if(x.topicId&&!e.studiedIds.includes(x.topicId))e.studiedIds.push(x.topicId)});
+    e.topicsStudied=e.studiedIds.length;e.xp=e.focusMinutes+Math.floor(e.manualMinutes/4);s.activityLog.push(e)});
+  const reset=t=>Object.assign(t,{status:'Not Started',confidence:0,lastStudiedAt:null,studyDays:[],studyCount:0,subsDone:[]});
+  (s.topics||[]).forEach(t=>{
+    const hit=V2_SAMPLE.find(([sub,start])=>t.subject===sub&&String(t.title).startsWith(start));
+    if(t.sample){reset(t);delete t.sample;return}
+    if(!hit||!Array.isArray(t.studyDays))return;
+    const fake=new Set(hit[2].map(d=>addDays(base,-d)));
+    const real=t.studyDays.filter(k=>!fake.has(k)&&!sampleDays.has(k));
+    if(real.length===t.studyDays.length)return;
+    if(!real.length){const mins=t.minutesTotal;reset(t);t.minutesTotal=mins;return}
+    t.studyDays=real;t.studyCount=real.length;
+    if(t.status==='Mastered'&&real.length<2)t.status='Learning';
+    t.subsDone=[];
+  });
+  s.streak={freezes:0,frozen:[],earned:[],checked:''};
+  return s;
+}
 /* ---------- storage, validation, migration ---------- */
 let storageOK=true;
 function validate(s){
   if(!s||typeof s!=='object'||Array.isArray(s))return{ok:false,msg:'Not a backup object'};
   if(!s.settings||typeof s.settings!=='object')return{ok:false,msg:'Missing settings'};
   if(!Array.isArray(s.topics)||!s.topics.length)return{ok:false,msg:'Missing topics'};
-  if(!Array.isArray(s.cards))return{ok:false,msg:'Missing cards'};
   if(s.topics.some(t=>!t||typeof t!=='object'||!t.id||!t.title))return{ok:false,msg:'A topic is missing id/title'};
-  if(s.cards.some(c=>!c||typeof c!=='object'||!c.id||typeof c.front!=='string'||typeof c.back!=='string'))return{ok:false,msg:'A card is missing id/front/back'};
   for(const k of ['activityLog','mockLogs','destLogs','journal','sessions'])if(s[k]!==undefined&&!Array.isArray(s[k]))return{ok:false,msg:k+' must be a list'};
   return{ok:true};
 }
@@ -913,23 +849,24 @@ function migrateV1(s){
   });
   s.topics.filter(o=>o.custom&&SUBJ[o.subject]).forEach(o=>fresh.push({...o,subs:[],subsDone:[],studyDays:o.lastStudiedAt?[dkey(new Date(o.lastStudiedAt))]:[]}));
   s.topics=fresh;
-  s.cards=s.cards.filter(c=>SUBJ[c.subject]).map(c=>({...c,topicId:map[c.topicId]||(fresh.find(t=>t.id===c.topicId)?c.topicId:null)}));
   s.journal=(s.journal||[]).map(j=>SUBJ[j.subject]?j:{...j,subject:null});
   (s.activityLog||[]).forEach(a=>{a.subjectsTouched=(a.subjectsTouched||[]).filter(k=>SUBJ[k]);a.legacy=true});
   if(s.settings)Object.keys(s.settings).forEach(k=>{if(/^include/.test(k)||k==='sessionMinutes')delete s.settings[k]});
   s.version=VERSION;return s;
 }
 function normalize(s){
-  if((+s.version||1)<2)s=migrateV1(s);
+  const ver=+s.version||1;
+  if(ver<2)s=migrateV1(s);
+  if(ver<3)s=stripSample(s);
+  delete s.cards;delete s.calendar;
   const base=seedState();
   s.version=VERSION;
   s.meta={...base.meta,...(s.meta||{})};
-  s.settings={...base.settings,...s.settings};
+  s.settings={...base.settings,...s.settings};delete s.settings.dailyRecallGoal;
   if(!PRESETS[s.settings.preset]&&s.settings.preset!=='custom')s.settings.preset='classic';
   s.woop={...base.woop,...(s.woop||{})};
   s.timer={...base.timer,...(s.timer||{})};
   s.streak={...base.streak,...(s.streak||{})};
-  s.calendar={...base.calendar,...(s.calendar||{})};
   for(const k of ['activityLog','mockLogs','destLogs','journal','sessions'])if(!Array.isArray(s[k]))s[k]=[];
   s.topics=s.topics.filter(t=>SUBJ[t.subject]);
   s.topics.forEach(t=>{
@@ -940,11 +877,7 @@ function normalize(s){
     t.studyCount=t.studyDays.length;t.minutesTotal=+t.minutesTotal||0;
     if(t.lastStudiedAt&&isNaN(Date.parse(t.lastStudiedAt)))t.lastStudiedAt=null;
   });
-  s.cards=s.cards.filter(c=>!c.subject||SUBJ[c.subject]);
-  s.cards.forEach(c=>{c.easeFactor=Math.max(1.3,+c.easeFactor||2.5);c.interval=Math.max(0,Math.round(+c.interval||0));c.repetitions=Math.max(0,+c.repetitions||0);c.lapses=Math.max(0,+c.lapses||0);c.reviews=+c.reviews||0;
-    c.dueDate=isKey(c.dueDate)?c.dueDate:today();if(c.lastReviewedAt&&isNaN(Date.parse(c.lastReviewedAt)))c.lastReviewedAt=null;
-    const t=s.topics.find(t=>t.id===c.topicId);if(!t)c.topicId=null;if(!c.subject)c.subject=t?t.subject:'quant'});
-  s.activityLog=s.activityLog.filter(a=>a&&isKey(a.date)).map(a=>{const b={...blankDay(a.date),...a};['reviewsCount','minutesLogged','focusMinutes','manualMinutes','topicsStudied','xp','correct','again','practice'].forEach(k=>b[k]=Math.max(0,+b[k]||0));
+  s.activityLog=s.activityLog.filter(a=>a&&isKey(a.date)).map(a=>{const b={...blankDay(a.date),...a};['minutesLogged','focusMinutes','manualMinutes','topicsStudied','xp','revised','newTopics'].forEach(k=>b[k]=Math.max(0,+b[k]||0));
     ['reviewedIds','studiedIds','subjectsTouched','quests'].forEach(k=>{if(!Array.isArray(b[k]))b[k]=[]});return b});
   s.sessions=s.sessions.filter(x=>x&&!isNaN(Date.parse(x.start))&&+x.minutes>0);
   s.mockLogs=s.mockLogs.filter(m=>m&&isFinite(+m.score)&&+m.maxScore>0).map(m=>({...m,id:m.id||uid('mock'),date:isKey(m.date)?m.date:today(),tier:String(m.tier||'Mock'),score:+m.score,maxScore:+m.maxScore}));
@@ -964,30 +897,16 @@ function save(){state.meta.savedAt=Date.now();try{localStorage.setItem(KEY,JSON.
    logic: metrics, integrity rules, XP & quests, SM-2, focus timer
    ========================================================= */
 const topicById=id=>state.topics.find(t=>t.id===id);
-const cardsFor=id=>state.cards.filter(c=>c.topicId===id);
-const isDue=c=>c.dueDate<=today();
-const dueCards=()=>state.cards.filter(isDue);
 const dayEntry=(k=today(),create=false)=>{let e=state.activityLog.find(a=>a.date===k);if(!e&&create){e=blankDay(k);state.activityLog.push(e)}return e};
-const isActiveDay=a=>!!a&&(a.reviewsCount>=5||a.minutesLogged>=20);
+const isActiveDay=a=>!!a&&a.minutesLogged>=20;
 
-/* ---- retention model: Ebbinghaus R(t)=e^(−t/S), corrected by the last observed answer ---- */
-function cardR(c){
-  if(!c.lastReviewedAt)return null;
-  const t=Math.max(0,tsDays(c.lastReviewedAt)),S=Math.max(.4,c.interval)*(c.easeFactor/2.5);
-  return Math.exp(-t/S)*({1:.5,2:.85}[c.lastRating]||1);
-}
-function studyS(t){return 1+t.confidence*1.5+Math.min(t.studyDays.length,6)*.8+(t.status==='Mastered'?3:0)}
-function studyR(t){return t.lastStudiedAt?Math.exp(-Math.max(0,tsDays(t.lastStudiedAt))/studyS(t)):null}
-function retention(t){
-  const cr=cardsFor(t.id).map(cardR).filter(r=>r!==null),sr=studyR(t);
-  if(!cr.length)return sr;const ca=avg(cr);return sr===null?ca:.6*ca+.4*sr;
-}
-function lastTouch(t){let l=t.lastStudiedAt?Date.parse(t.lastStudiedAt):0;cardsFor(t.id).forEach(c=>{if(c.lastReviewedAt)l=Math.max(l,Date.parse(c.lastReviewedAt))});return l||null}
-function nextReview(t){
-  const cs=cardsFor(t.id);if(cs.length)return cs.map(c=>c.dueDate).sort()[0];
-  if(!t.lastStudiedAt)return null;
-  return addDays(dkey(new Date(t.lastStudiedAt)),Math.max(1,Math.round(studyS(t)*Math.log(1/.7))));
-}
+/* ---- retention model: Ebbinghaus R(t)=e^(−t/S). Stability S grows with spaced study days, time invested, confidence and mastery. ---- */
+function studyS(t){return 1+t.confidence*1.5+Math.min(t.studyDays.length,8)*.9+Math.min((t.minutesTotal||0)/60,5)*.6+(t.status==='Mastered'?3:0)}
+function retentionAt(t,daysAhead=0){return t.lastStudiedAt?Math.exp(-(Math.max(0,tsDays(t.lastStudiedAt))+daysAhead)/studyS(t)):null}
+const retention=t=>retentionAt(t,0);
+const lastTouch=t=>t.lastStudiedAt?Date.parse(t.lastStudiedAt):null;
+function nextReview(t){if(!t.lastStudiedAt)return null;return addDays(dkey(new Date(t.lastStudiedAt)),Math.max(1,Math.round(studyS(t)*Math.log(1/.7))))}
+const revisionsDue=(k=today())=>state.topics.filter(t=>{const n=nextReview(t);return n&&n<=k}).map(t=>({t,r:retention(t),due:nextReview(t)})).sort((a,b)=>a.r-b.r);
 function subjectStats(key){
   const ts=state.topics.filter(t=>t.subject===key),started=ts.filter(t=>t.status!=='Not Started').length;
   const rs=ts.map(retention).filter(r=>r!==null);
@@ -997,7 +916,6 @@ function subjectLastActivity(key){
   let last=0;
   state.sessions.forEach(s=>{if(s.subject===key)last=Math.max(last,Date.parse(s.end||s.start))});
   state.topics.forEach(t=>{if(t.subject===key&&t.lastStudiedAt)last=Math.max(last,Date.parse(t.lastStudiedAt))});
-  state.cards.forEach(c=>{if(c.subject===key&&c.lastReviewedAt)last=Math.max(last,Date.parse(c.lastReviewedAt))});
   return last||null;
 }
 /* ---- streak with freezes ---- */
@@ -1027,11 +945,11 @@ function addXP(n,k=today()){
 }
 function dayOfYear(k){const d=parseKey(k);return Math.floor((d-new Date(d.getFullYear(),0,0))/DAY)}
 function questsFor(k=today()){
-  const e=dayEntry(k)||blankDay(k),goal=Math.min(state.settings.dailyRecallGoal,20);
+  const e=dayEntry(k)||blankDay(k),fading=state.topics.filter(t=>{const r=retention(t);return r!==null&&r<.7}).length;
   const sess=state.sessions.filter(s=>s.kind==='timer'&&s.minutes>=15&&dkey(new Date(s.start))===k).length;
   const jr=tags=>state.journal.filter(j=>tags.includes(j.tag)&&dkey(new Date(j.createdAt))===k).length;
   const qs=[
-    {id:'recall',title:`Clear ${goal} due cards`,hint:'Only due cards count — first answer per card.',have:e.reviewsCount,need:goal,go:'recall'},
+    fading>=2||e.revised?{id:'revise',title:'Revise 2 fading topics',hint:'Log Study or focus on a topic below 70% retention.',have:e.revised,need:2,go:'command'}:{id:'touch3',title:'Study 3 different topics',hint:'Log Study or a focus session on each.',have:e.topicsStudied,need:3,go:'syllabus'},
     {id:'focus',title:'Bank 2 focus sessions (15+ min)',hint:'Timer-verified only.',have:sess,need:2,go:'focus'}
   ];
   const dow=parseKey(k).getDay(),rot=[
@@ -1052,19 +970,19 @@ function checkQuests(){
 }
 /* ---- integrity-checked actions ---- */
 function touchTopic(t,{k=today(),xp=true}={}){
-  const e=dayEntry(k,true),firstEver=!t.studyDays.length,already=t.studyDays.includes(k);
+  const e=dayEntry(k,true),firstEver=!t.studyDays.length,already=t.studyDays.includes(k),r0=retention(t),wasFading=r0!==null&&r0<.7;
   if(!already){t.studyDays.push(k);t.studyDays.sort();t.studyCount=t.studyDays.length}
   if(!t.lastStudiedAt||k===today())t.lastStudiedAt=new Date().toISOString();
   if(t.status==='Not Started')t.status='Learning';
   if(!t.confidence)t.confidence=2;
   delete t.sample;
-  if(!e.studiedIds.includes(t.id)){e.studiedIds.push(t.id);e.topicsStudied=e.studiedIds.length;if(firstEver)e.newTopics++;if(xp)addXP(3,k)}
+  if(!e.studiedIds.includes(t.id)){e.studiedIds.push(t.id);e.topicsStudied=e.studiedIds.length;if(firstEver)e.newTopics++;if(wasFading){e.revised=(e.revised||0)+1;if(xp)addXP(2,k)}if(xp)addXP(3,k)}
   if(!e.subjectsTouched.includes(t.subject))e.subjectsTouched.push(t.subject);
   return !already;
 }
 function logStudy(id){
   const t=topicById(id);if(!t)return;
-  if(t.studyDays.includes(today())){toast('Already logged today ✓ — hours come from the Focus timer');return}
+  if(t.studyDays.includes(today())){toast('Already logged today ✓ — add hours with the Focus timer');return}
   touchTopic(t);save();checkQuests();renderView();toast(`Touched · ${t.title.length>36?t.title.slice(0,34)+'…':t.title} · +3 XP`);
 }
 const evidence=t=>t.studyDays.length>=2&&t.confidence>=4;
@@ -1091,16 +1009,6 @@ function manualCapCheck(k,minutes){
   if(e.minutesLogged+minutes>Math.min(sinceMidnight,16*60))return`That would log ${fmtHM(e.minutesLogged+minutes)} — more than is possible ${k===today()?'so far today':'in a day'}.`;
   return null;
 }
-/* ---- SM-2 ---- */
-function schedule(c,rating){
-  let ef=c.easeFactor,iv=c.interval,reps=c.repetitions,lapses=c.lapses,days;
-  if(rating===1){reps=0;lapses++;ef=Math.max(1.3,ef-.2);iv=1;days=0}
-  else if(rating===2){iv=Math.max(1,Math.round(iv*1.2));ef=Math.max(1.3,ef-.15);reps++;days=iv}
-  else if(rating===3){iv=reps===0?1:reps===1?6:Math.round(iv*ef);reps++;days=iv}
-  else{const good=reps===0?1:reps===1?6:Math.round(iv*ef);iv=reps===0?4:Math.max(good+1,Math.round(iv*ef*1.3));ef+=.15;reps++;days=iv}
-  return{easeFactor:Math.round(ef*100)/100,interval:iv,repetitions:reps,lapses,days};
-}
-
 /* ---- focus timer (wall-clock based: survives reloads, can't be fast-forwarded) ---- */
 const presetVals=()=>{const s=state.settings;return s.preset==='custom'?['Custom',s.focusMin,s.breakMin,Math.min(30,s.breakMin*3)]:PRESETS[s.preset]};
 const tm=()=>state.timer;
@@ -1153,7 +1061,7 @@ function timerPause(){const t=tm();if(t.phase==='idle')return;if(t.pausedAt){t.p
 /* =========================================================
    render
    ========================================================= */
-const ui={view:'command',open:new Set(),sy:{q:'',tier:'all',status:'all',weight:'all'},rc:{subject:'all',due:true,queue:[],idx:0,flipped:false,done:0,built:false,limit:0,shownAt:0},editingCard:null,editingJournal:null,jTag:'All',jq:'',lastSession:null};
+const ui={view:'command',open:new Set(),sy:{q:'',tier:'all',status:'all',weight:'all'},editingJournal:null,jTag:'All',jq:'',lastSession:null};
 function withFocus(fn){const a=document.activeElement,fk=a&&a.dataset?a.dataset.fk:null;fn();if(fk){const el=document.querySelector(`[data-fk="${CSS.escape(fk)}"]`);if(el)el.focus({preventScroll:true})}}
 function discHead(id,inner){const o=ui.open.has(id);return `<button class="disc-head" aria-expanded="${o}" aria-controls="${id}" data-action="toggle" data-target="${id}" data-fk="h-${id}">${inner}${CHEV}</button>`}
 function discBody(id,inner,force=false){const o=force||ui.open.has(id);return `<div class="collapse ${o?'open':''}" id="${id}" ${o?'':'inert'}><div>${inner}</div></div>`}
@@ -1175,19 +1083,18 @@ function confetti(n=60){
 
 /* ---------- TODAY ---------- */
 function nextAction(){
-  const t=tm(),due=dueCards();
+  const t=tm(),P=presetVals()[1];
   if(t.phase!=='idle')return{k:t.phase==='focus'?'Focus running':'On a break',b:`${fmtClock(tLeft())} left${topicById(t.topicId)?' · '+topicById(t.topicId).title:''}`,s:'Tap to open the timer',a:'goto-focus'};
-  if(due.length){const over=due.filter(c=>c.dueDate<today()).length;return{k:'Next best move',b:`Clear ${due.length} due card${due.length>1?'s':''}`,s:`~${Math.max(2,Math.round(due.length*.4))} min${over?` · ${over} overdue and fading`:''}`,a:'start-recall',sub:'all'}}
-  const dec=state.topics.filter(x=>x.weightage==='High').map(x=>({x,r:retention(x)})).filter(o=>o.r!==null&&o.r<.7).sort((a,b)=>a.r-b.r)[0];
-  if(dec)return{k:'Next best move',b:`Rescue “${dec.x.title}”`,s:`${pct(dec.r)}% retention · start a ${presetVals()[1]}-min focus block`,a:'focus-topic',id:dec.x.id};
+  const due=revisionsDue();
+  if(due.length){const d=due[0];return{k:due.length>1?`${due.length} topics due for revision`:'Due for revision',b:`Revise “${d.t.title}”`,s:`${pct(d.r)}% retention · ${subjShort(d.t.subject)} · ${P}-min focus block`,a:'focus-topic',id:d.t.id}}
   const ns=state.topics.find(x=>x.weightage==='High'&&x.status==='Not Started');
-  if(ns)return{k:'Next best move',b:`Start “${ns.title}”`,s:`${subjShort(ns.subject)} · high weightage · ${presetVals()[1]}-min focus`,a:'focus-topic',id:ns.id};
+  if(ns)return{k:'Next best move',b:`Start “${ns.title}”`,s:`${subjShort(ns.subject)} · high weightage · ${P}-min focus`,a:'focus-topic',id:ns.id};
   return{k:'Next best move',b:'Run a focus block',s:'Everything is fresh — go deeper.',a:'goto-focus'};
 }
 function renderCommand(){
   const s=state.settings,td=today(),e=dayEntry(td)||blankDay(td),h=new Date().getHours();
   $('#cmdTitle').textContent=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
-  $('#cmdLede').innerHTML=`<span class="num">${e.reviewsCount}/${s.dailyRecallGoal}</span> reviews · <span class="num">${fmtHM(e.minutesLogged)}</span> of <span class="num">${fmtHM(s.dailyStudyMinutes)}</span> studied today`;
+  $('#cmdLede').innerHTML=`<span class="num">${fmtHM(e.minutesLogged)}</span> of <span class="num">${fmtHM(s.dailyStudyMinutes)}</span> studied today · <span class="num">${e.topicsStudied}</span> topic${e.topicsStudied===1?'':'s'} touched`;
   const xp=totalXP(),r=rankOf(xp),prog=r.next?(xp-r.floor)/(r.next-r.floor):1;
   $('#rank').innerHTML=`<div class="rank-badge">${r.i+1}</div><div class="rank-body"><div class="spread"><span class="rank-title">${esc(r.title)}</span><span class="tiny muted"><span class="num">${fmtN(xp)}</span> XP${r.next?` · <span class="num">${fmtN(r.next-xp)}</span> to ${esc(r.nextTitle)}`:''}</span></div><div class="xpbar"><span style="width:${prog*100}%"></span></div></div>`;
   const na=nextAction();
@@ -1200,26 +1107,23 @@ function renderCommand(){
     k1=up.length?`<div class="kpi"><span class="kpi-label">Days to ${up[0][0]}</span><span class="kpi-val">${up[0][1]}<small>d</small></span><span class="kpi-sub">${up[1]?`${up[1][0]} · <span class="num">${up[1][1]}d</span>`:'&nbsp;'}</span></div>`:`<button class="kpi" data-action="open-drawer"><span class="kpi-label">Exams</span><span class="kpi-val">Done</span><span class="kpi-sub"><span class="link">Set next dates</span></span></button>`}
   const at=state.topics,m=at.filter(t=>t.status==='Mastered').length,mp=m/at.length;
   const k2=`<div class="kpi"><span class="kpi-label">Syllabus mastery</span><span class="kpi-val">${(mp*100).toFixed(1)}<small>%</small></span><span class="kpi-sub"><span class="num">${m}/${at.length}</span> mastered</span><div class="meter"><span style="width:${mp*100}%"></span></div></div>`;
-  const due=dueCards(),over=due.filter(c=>c.dueDate<td).length;
-  const k3=`<button class="kpi" data-action="start-recall" data-subject="all"><span class="kpi-label">Recall queue</span><span class="kpi-val">${due.length}<small>due</small></span><span class="kpi-sub">${over?`<span class="pill coral"><span class="num">${over}</span> overdue</span>`:due.length?'<span class="pill amber">Due today</span>':'<span class="pill sage">All clear</span>'}</span></button>`;
+  const rs=at.map(retention).filter(r=>r!==null),fad=rs.filter(r=>r<.7).length,dueN=revisionsDue().length;
+  const k3=`<button class="kpi" data-action="go" data-view="analytics"><span class="kpi-label">Avg retention</span><span class="kpi-val">${rs.length?pct(avg(rs)):'—'}<small>${rs.length?'%':''}</small></span><span class="kpi-sub">${!rs.length?'Log study to start':dueN?`<span class="pill coral"><span class="num">${dueN}</span> due for revision</span>`:fad?`<span class="pill amber"><span class="num">${fad}</span> fading</span>`:'<span class="pill sage">All fresh</span>'}</span></button>`;
   const st=currentStreak(),done=isActiveDay(e);
   const k4=`<div class="kpi"><span class="kpi-label">Streak</span><span class="kpi-val">${st}<small>${st===1?'day':'days'}</small></span><span class="kpi-sub">${done?'<span class="pill sage">Today counted</span>':'<span class="pill amber">Not yet today</span>'} <span title="Streak freezes">❄ <span class="num">${state.streak.freezes}</span></span></span></div>`;
   $('#kpis').innerHTML=k1+k2+k3+k4;
   // goals + quests
   const g=(lbl,have,need,fmt)=>`<div class="goal"><div class="spread"><span class="muted">${lbl}</span><span class="num">${fmt(have)}/${fmt(need)}</span></div><div class="meter"><span style="width:${Math.min(100,have/need*100)}%;${have>=need?'':'background:var(--accent-amber)'}"></span></div></div>`;
-  $('#goals').innerHTML=g('Due reviews',e.reviewsCount,s.dailyRecallGoal,x=>x)+g('Study time',e.minutesLogged,s.dailyStudyMinutes,fmtHM);
+  $('#goals').innerHTML=g('Study time',e.minutesLogged,s.dailyStudyMinutes,fmtHM)+g('Topics touched',e.topicsStudied,3,x=>x);
   $('#xpToday').innerHTML=`+<span class="num">${e.xp||0}</span> XP today`;
   $('#quests').innerHTML=questsFor(td).map(q=>`<div class="quest ${q.done?'done':''}"><span class="qcheck" aria-hidden="true">✓</span><div class="qbody"><div class="qtitle">${esc(q.title)}</div><div class="tiny muted">${esc(q.hint)} · <span class="num">${Math.min(q.have,q.need)}/${q.need}</span></div></div>${q.done?'<span class="pill sage">+25</span>':`<button class="btn sm" data-action="go" data-view="${q.go}">Go</button>`}</div>`).join('');
   // priority queue
-  const items=[],bySubj={};due.forEach(c=>{(bySubj[c.subject]??=[]).push(c)});
-  Object.entries(bySubj).map(([k,cs])=>({k,cs,over:cs.filter(c=>c.dueDate<td).length,oldest:cs.map(c=>c.dueDate).sort()[0]})).sort((a,b)=>b.over-a.over||a.oldest.localeCompare(b.oldest))
-    .forEach(gp=>items.push({title:`Recall ${gp.cs.length} ${subjShort(gp.k)} card${gp.cs.length>1?'s':''}`,meta:gp.over?`<span class="pill coral"><span class="num">${gp.over}</span> overdue</span> since <span class="num">${fmtDate(gp.oldest)}</span>`:'<span class="pill amber">Due today</span>',btn:`<button class="btn sm primary" data-action="start-recall" data-subject="${gp.k}">Recall</button>`}));
-  const dec=at.filter(t=>t.weightage==='High').map(t=>({t,r:retention(t)})).filter(x=>x.r!==null&&x.r<.7).sort((a,b)=>a.r-b.r);
-  dec.forEach(({t,r})=>items.push({title:t.title,meta:`${retPill(r)} ${subjShort(t.subject)} · fading`,btn:`<button class="btn sm" data-action="focus-topic" data-id="${t.id}">Focus</button>`}));
+  const items=[];
+  revisionsDue().forEach(({t,r,due:d})=>{const od=diffDays(td,d);items.push({title:t.title,meta:`${retPill(r)} ${subjShort(t.subject)} · ${od>0?`revision overdue <span class="num">${od}d</span>`:'revision due today'}`,btn:`<button class="btn sm primary" data-action="focus-topic" data-id="${t.id}">Focus</button><button class="btn sm" data-action="log-study" data-id="${t.id}">✓ Revised</button>`})});
   at.filter(t=>t.weightage==='High'&&t.status==='Not Started').slice(0,5).forEach(t=>items.push({title:t.title,meta:`<span class="pill">Not started</span> ${subjShort(t.subject)} · high weightage`,btn:`<button class="btn sm" data-action="focus-topic" data-id="${t.id}">Focus</button>`}));
   const top=items.slice(0,5);
   $('#pqCount').innerHTML=`<span class="num">${top.length}</span>&nbsp;actions`;
-  $('#pq').innerHTML=top.length?top.map((it,i)=>`<li><span class="pq-rank">${i+1}</span><div class="pq-body"><div class="pq-title">${esc(it.title)}</div><div class="pq-meta">${it.meta}</div></div>${it.btn}</li>`).join(''):'<li class="empty">Nothing urgent. Pick a topic and run a focus block.</li>';
+  $('#pq').innerHTML=top.length?top.map((it,i)=>`<li><span class="pq-rank">${i+1}</span><div class="pq-body"><div class="pq-title">${esc(it.title)}</div><div class="pq-meta">${it.meta}</div></div><div class="row" style="flex:none">${it.btn}</div></li>`).join(''):'<li class="empty">Nothing urgent. Pick a topic and run a focus block.</li>';
   renderCalKit();
   const w=state.woop;[['woopWish','wish'],['woopOutcome','outcome'],['woopObstacle','obstacle'],['woopPlan','plan']].forEach(([id,k])=>{const el=$('#'+id);if(document.activeElement!==el)el.value=w[k]||''});
   $('#woopMeta').innerHTML=w.updatedAt?`Updated <span class="num">${fmtDT(w.updatedAt)}</span>`:'Wish · Outcome · Obstacle · Plan — not set yet';
@@ -1237,22 +1141,21 @@ function gcalLink({title,details,start,mins=20,recur}){
   return 'https://calendar.google.com/calendar/render?'+p.toString();
 }
 function dueForecast(k){
-  const cs=state.cards.filter(c=>k===today()?c.dueDate<=k:c.dueDate===k);
-  const topics=[...new Set(cs.map(c=>topicById(c.topicId)?.title).filter(Boolean))];
-  return{count:cs.length,topics};
+  const ts=state.topics.filter(t=>{const n=nextReview(t);return n&&(k===today()?n<=k:n<=k)}).map(t=>t.title);
+  return{count:ts.length,topics:ts};
 }
 function fadingTopics(n=5){return state.topics.map(t=>({t,r:retention(t)})).filter(x=>x.r!==null&&x.r<.7).sort((a,b)=>a.r-b.r).slice(0,n)}
 function reminderText(k){
   const f=dueForecast(k),fade=fadingTopics();
-  return `APEX · ${f.count} recall card${f.count===1?'':'s'} due`+'\n\n'+(f.topics.length?'Due: '+f.topics.slice(0,8).join(', ')+'\n':'')+(fade.length?'Fading (<70%): '+fade.map(x=>`${x.t.title} ${pct(x.r)}%`).join(', ')+'\n':'')+'\nOpen APEX → Quick 5 recall, then one focus block.\n'+APP_URL;
+  return `APEX · ${f.count} topic${f.count===1?'':'s'} due for revision`+'\n\n'+(f.topics.length?'Revise: '+f.topics.slice(0,10).join(', ')+'\n':'')+(fade.length?'Lowest retention: '+fade.map(x=>`${x.t.title} ${pct(x.r)}%`).join(', ')+'\n':'')+'\nOpen APEX → tap the big green button.\n'+APP_URL;
 }
 function renderCalKit(){
-  const s=state.settings,td=today(),tm1=addDays(td,1),ft=dueForecast(tm1),fo=dueForecast(td);
+  const s=state.settings,td=today(),tm1=addDays(td,1),ft=dueForecast(tm1),fo=dueForecast(td);ft.count=Math.max(0,ft.count-fo.count);
   const nowPlus=new Date(Date.now()+30*60000);nowPlus.setMinutes(Math.ceil(nowPlus.getMinutes()/15)*15,0,0);
   $('#calKit').innerHTML=`<div class="cal-links">
-    <a href="${esc(gcalLink({title:'APEX · daily recall + 1 focus block',details:'Daily check-in: Quick 5 recall, then one focus block. Keep the streak alive.\n'+APP_URL,start:atTime(td,s.remindTime),mins:20,recur:'RRULE:FREQ=DAILY'}))}" target="_blank" rel="noopener">Daily reminder at <span class="num">${esc(s.remindTime)}</span><span>Repeats every day →</span></a>
-    <a href="${esc(gcalLink({title:`APEX · ${ft.count+fo.count} cards due`,details:reminderText(tm1),start:atTime(tm1,s.remindTime),mins:20}))}" target="_blank" rel="noopener">Tomorrow’s recall list<span><span class="num">${ft.count+fo.count}</span> due →</span></a>
-    ${fo.count?`<a href="${esc(gcalLink({title:`APEX · rescue ${fo.count} due cards`,details:reminderText(td),start:nowPlus,mins:15}))}" target="_blank" rel="noopener">Rescue today’s overdue<span>in ~30 min →</span></a>`:''}
+    <a href="${esc(gcalLink({title:'APEX · revise + 1 focus block',details:'Daily check-in: revise what is due, then one focus block. Keep the streak alive.\n'+APP_URL,start:atTime(td,s.remindTime),mins:20,recur:'RRULE:FREQ=DAILY'}))}" target="_blank" rel="noopener">Daily reminder at <span class="num">${esc(s.remindTime)}</span><span>Repeats every day →</span></a>
+    <a href="${esc(gcalLink({title:`APEX · ${ft.count+fo.count} topics to revise`,details:reminderText(tm1),start:atTime(tm1,s.remindTime),mins:20}))}" target="_blank" rel="noopener">Tomorrow’s revision list<span><span class="num">${ft.count+fo.count}</span> topics →</span></a>
+    ${fo.count?`<a href="${esc(gcalLink({title:`APEX · revise ${fo.count} fading topics`,details:reminderText(td),start:nowPlus,mins:15}))}" target="_blank" rel="noopener">Revise today’s overdue<span>in ~30 min →</span></a>`:''}
   </div><p class="tiny muted" style="margin-top:10px">Each opens Google Calendar with the event pre-filled — tap Save. Change the time in System → Reminders.</p>
 `;
   const cs=$('#calSync');if(cs)cs.innerHTML=$('#calKit').innerHTML;
@@ -1311,19 +1214,18 @@ function topicMatch(t){
   return true;
 }
 function topicRow(t){
-  const days=t.lastStudiedAt?calDays(t.lastStudiedAt):null,nr=nextReview(t),cc=cardsFor(t.id).length,logged=t.studyDays.includes(today());
+  const days=t.lastStudiedAt?calDays(t.lastStudiedAt):null,nr=nextReview(t),rt=retention(t),logged=t.studyDays.includes(today());
   let nrTxt='';if(nr){const d=diffDays(nr,today());nrTxt=d<0?` · <span style="color:var(--ink-coral)">review overdue <span class="num">${-d}d</span></span>`:d===0?' · <span style="color:var(--ink-amber)">review due today</span>':` · next review in <span class="num">${d}d</span>`}
   const subs=t.subs.length?`<div class="subs" role="group" aria-label="Subtopics">${t.subs.map((s,i)=>`<button class="sub" data-action="sub" data-id="${t.id}" data-i="${i}" data-fk="sb-${t.id}-${i}" aria-pressed="${t.subsDone.includes(i)}">${esc(s)}</button>`).join('')}</div>`:'';
   return `<div class="topic" data-s="${t.status}">
     <div class="topic-main"><div class="topic-title">${esc(t.title)}</div>
-      <div class="topic-tags"><span class="pill">${t.tier==='T1+T2'?'Tier I+II':t.tier==='T2'?'Tier-II':'Tier-I'}</span><span class="pill">${t.weightage}</span>${t.subs.length?`<span class="pill"><span class="num">${t.subsDone.length}/${t.subs.length}</span> subtopics</span>`:''}${cc?`<span class="pill"><span class="num">${cc}</span> card${cc>1?'s':''}</span>`:''}${t.minutesTotal?`<span class="pill sage num">${fmtHM(t.minutesTotal)}</span>`:''}${t.custom?'<span class="pill">Custom</span>':''}</div>
+      <div class="topic-tags"><span class="pill">${t.tier==='T1+T2'?'Tier I+II':t.tier==='T2'?'Tier-II':'Tier-I'}</span><span class="pill">${t.weightage}</span>${t.subs.length?`<span class="pill"><span class="num">${t.subsDone.length}/${t.subs.length}</span> subtopics</span>`:''}${rt!==null?`<span class="pill ${rt>=.7?'sage':rt>=.5?'amber':'coral'}">Retention <span class="num">${pct(rt)}%</span></span>`:''}${t.minutesTotal?`<span class="pill sage num">${fmtHM(t.minutesTotal)}</span>`:''}${t.custom?'<span class="pill">Custom</span>':''}</div>
       <div class="topic-meta">${days===null?'Not studied yet':`Studied <span class="num">${relDays(days)}</span> · <span class="num">${t.studyDays.length}</span> day${t.studyDays.length===1?'':'s'}`}${nrTxt}</div>${subs}</div>
     <div class="topic-ctrl">
       <button class="pill status-btn ${STATUS_CLS[t.status]}" data-action="cycle-status" data-id="${t.id}" data-fk="st-${t.id}" aria-label="Status: ${t.status}. Activate to advance."><span class="dot"></span>${t.status}</button>
       <div class="conf" role="group" aria-label="Confidence 1 to 5">${[1,2,3,4,5].map(n=>`<button data-action="conf" data-id="${t.id}" data-v="${n}" data-fk="cf-${t.id}-${n}" aria-pressed="${t.confidence===n}" aria-label="Confidence ${n}">${n}</button>`).join('')}</div>
       <button class="btn sm ghost" data-action="focus-topic" data-id="${t.id}">▶ Focus</button>
-      <button class="btn sm ghost" data-action="prompt-topic" data-id="${t.id}">+ Card</button>
-      <button class="btn sm ${logged?'logged':''}" data-action="log-study" data-id="${t.id}" data-fk="ls-${t.id}">${logged?'Logged ✓':'Log Study'}</button>
+      <button class="btn sm ${logged?'logged':''}" data-action="log-study" data-id="${t.id}" data-fk="ls-${t.id}">${logged?'Logged ✓':nr&&nr<=today()?'✓ Revised':'Log Study'}</button>
       ${t.dest?'<button class="btn sm ghost" data-action="goto-dest">Log DEST</button>':''}
       ${t.custom?`<button class="btn sm ghost danger" data-action="del-topic" data-id="${t.id}">Delete</button>`:''}
     </div></div>`;
@@ -1351,104 +1253,20 @@ function renderSyllabus(){
   $('#syLede').innerHTML=`SSC CGL 2026 · Tier-I &amp; Tier-II Paper-I · <span class="num">${state.topics.length}</span> topics · <span class="num">${subsN}</span> subtopics`;
 }
 
-/* ---------- RECALL ---------- */
-function buildQueue(focusId){
-  const r=ui.rc;let cs=state.cards.slice();
-  if(r.subject!=='all')cs=cs.filter(c=>c.subject===r.subject);
-  if(r.due)cs=cs.filter(isDue);
-  cs.sort((a,b)=>a.dueDate.localeCompare(b.dueDate)||b.lapses-a.lapses);
-  r.queue=cs.map(c=>c.id);
-  if(focusId)r.queue=[focusId,...r.queue.filter(id=>id!==focusId)];
-  if(r.limit)r.queue=r.queue.slice(0,r.limit);
-  r.idx=0;r.flipped=false;r.done=0;r.built=true;r.shownAt=Date.now();
-}
-function renderRecall(){
-  const r=ui.rc,s=state.settings,e=dayEntry()||blankDay(today());
-  if(!r.built)buildQueue();
-  $('#rcLede').innerHTML=`<span class="num">${dueCards().length}</span> due · <span class="num">${e.reviewsCount}/${s.dailyRecallGoal}</span> reviewed today${r.limit?` · <span class="pill amber">Quick ${r.limit}</span>`:''}`;
-  const sel=$('#rcSubject');sel.innerHTML=`<option value="all">All subjects</option>`+SUBJECTS.map(x=>`<option value="${x.key}">${esc(x.short)} · ${state.cards.filter(c=>c.subject===x.key).length}</option>`).join('');sel.value=r.subject;$('#rcDue').checked=r.due;
-  const goal=`<div class="progress-line" aria-hidden="true"><span style="width:${Math.min(100,e.reviewsCount/s.dailyRecallGoal*100)}%"></span></div>`;
-  let html;
-  if(r.idx>=r.queue.length){
-    html=`<div class="card" style="text-align:center;padding:32px 20px"><h2>${r.done?'Session complete':'Nothing due'}</h2>
-      <p class="muted small" style="margin:8px 0 16px">${r.done?`You went through <span class="num">${r.done}</span> card${r.done>1?'s':''}. `:''}${r.due?'No due cards in this filter.':'This filter has no cards.'}</p>
-      <div class="row" style="justify-content:center">${r.due?'<button class="btn" data-action="rc-all">Practise anyway (schedule unchanged)</button>':''}<button class="btn primary" data-action="goto-focus">Start a focus block</button></div>
-      <div style="margin-top:20px">${goal}<p class="tiny muted" style="margin-top:6px">Daily goal <span class="num">${e.reviewsCount}/${s.dailyRecallGoal}</span></p></div></div>`;
-  }else{
-    const c=state.cards.find(x=>x.id===r.queue[r.idx]);
-    if(!c){r.queue.splice(r.idx,1);return renderRecall()}
-    const t=topicById(c.topicId),od=diffDays(today(),c.dueDate),due=isDue(c),pv=[1,2,3,4].map(n=>schedule(c,n).days);
-    html=`<div class="spread"><div class="crumb"><span>${esc(subjShort(c.subject))}</span>›<span>${esc(t?t.chapter:'—')}</span>›<span>${esc(t?t.title:'Unlinked')}</span></div>
-      <div class="row tiny muted"><span class="num">${r.idx+1}/${r.queue.length}</span>${od>0?`<span class="pill coral"><span class="num">${od}d</span> overdue</span>`:''}${c.lapses?`<span class="pill amber"><span class="num">${c.lapses}</span> lapses</span>`:''}</div></div>
-      ${due?'':`<div class="practice-banner">Practice mode — this card isn’t due until <span class="num">${fmtDate(c.dueDate)}</span>. Its schedule won’t change and it won’t count toward goals.</div>`}
-      <div class="flip ${r.flipped?'flipped':''}">
-        <div class="flip-inner" role="button" tabindex="0" id="flashcard" data-action="flip" aria-label="${r.flipped?'Answer shown.':'Flashcard prompt. Press Space or Enter to reveal the answer.'}">
-          <div class="face front" aria-hidden="${r.flipped}"><div class="q">${esc(c.front).replace(/\n/g,'<br>')}</div><div class="hint">Say it out loud first, then tap · <span class="kbd">Space</span></div></div>
-          <div class="face back" aria-hidden="${!r.flipped}"><div class="hint">${esc(c.front)}</div><div class="a">${esc(c.back).replace(/\n/g,'<br>')}</div></div>
-        </div></div>
-      ${r.flipped?`<div class="rate" role="group" aria-label="Rate your recall">
-        <button class="again" data-action="rate" data-v="1"><span>Again <span class="kbd">1</span></span><span class="iv">${due?fmtIv(pv[0]):'—'}</span></button>
-        <button class="hard" data-action="rate" data-v="2"><span>Hard <span class="kbd">2</span></span><span class="iv">${due?fmtIv(pv[1]):'—'}</span></button>
-        <button class="good" data-action="rate" data-v="3"><span>Good <span class="kbd">3</span></span><span class="iv">${due?fmtIv(pv[2]):'—'}</span></button>
-        <button class="easy" data-action="rate" data-v="4"><span>Easy <span class="kbd">4</span></span><span class="iv">${due?fmtIv(pv[3]):'—'}</span></button></div>
-        <div class="swipe-hint" aria-hidden="true"><span>← swipe Again</span><span>↓ Hard · ↑ Easy</span><span>Good swipe →</span></div>`
-        :`<div class="row" style="justify-content:center"><button class="btn primary" data-action="flip" style="min-height:52px;padding:12px 40px">Show answer</button></div>`}
-      <div style="margin-top:16px">${goal}</div>`;
-  }
-  $('#studio').innerHTML=html;bindSwipe();renderDeck();
-}
-function renderDeck(){
-  const td=today(),cs=[...state.cards].sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
-  $('#deckMeta').innerHTML=`<span class="num">${cs.length}</span> cards · <span class="num">${cs.filter(isDue).length}</span> due`;
-  $('#deckList').innerHTML=cs.length?cs.map(c=>{const d=diffDays(c.dueDate,td),t=topicById(c.topicId);
-    return `<div class="deck-row"><div class="deck-front">${esc(c.front)}<div class="topic-tags"><span class="pill">${esc(subjShort(c.subject))}</span>${t?`<span class="pill">${esc(t.title.length>34?t.title.slice(0,32)+'…':t.title)}</span>`:''}<span class="pill ${d<0?'coral':d===0?'amber':''}">${d<0?`<span class="num">${-d}d</span> overdue`:d===0?'Due today':`Due in <span class="num">${d}d</span>`}</span><span class="pill">EF <span class="num">${c.easeFactor.toFixed(2)}</span> · IV <span class="num">${c.interval}d</span>${c.lapses?` · L <span class="num">${c.lapses}</span>`:''}</span></div></div>
-    <div class="deck-actions"><button class="btn sm ghost" data-action="review-card" data-id="${c.id}">Review</button><button class="btn sm ghost" data-action="edit-card" data-id="${c.id}">Edit</button><button class="btn sm ghost danger" data-action="del-card" data-id="${c.id}">Delete</button></div></div>`}).join(''):'<p class="empty">No cards yet.</p>';
-}
-function fillCardForm(subject,topicId){const ss=$('#cfSubject');ss.innerHTML=SUBJECTS.map(s=>`<option value="${s.key}">${esc(s.short)}</option>`).join('');ss.value=SUBJ[subject]?subject:'quant';fillTopicSelect(topicId)}
-function fillTopicSelect(topicId){const k=$('#cfSubject').value,ts=state.topics.filter(t=>t.subject===k),chs=[...new Set(ts.map(t=>t.chapter))];
-  $('#cfTopic').innerHTML=chs.map(ch=>`<optgroup label="${esc(ch)}">${ts.filter(t=>t.chapter===ch).map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join('')}</optgroup>`).join('');if(topicId)$('#cfTopic').value=topicId}
-function rate(v){
-  const r=ui.rc,c=state.cards.find(x=>x.id===r.queue[r.idx]);if(!c||!r.flipped)return;
-  const e=dayEntry(today(),true);
-  if(!isDue(c)){e.practice++;if(v===1&&!r.queue.slice(r.idx+1).includes(c.id))r.queue.push(c.id)}
-  else{
-    const n=schedule(c,v),first=!e.reviewedIds.includes(c.id),thought=(r.flippedAt||Date.now())-r.shownAt>=1200;
-    Object.assign(c,{easeFactor:n.easeFactor,interval:n.interval,repetitions:n.repetitions,lapses:n.lapses,dueDate:addDays(today(),n.days),lastReviewedAt:new Date().toISOString(),lastRating:v,reviews:(c.reviews||0)+1});
-    delete c.sample;
-    if(first){e.reviewedIds.push(c.id);e.reviewsCount++;v===1?e.again++:v>=3?e.correct++:0;if(thought)addXP(2+(v>=3?1:0));if(!e.subjectsTouched.includes(c.subject))e.subjectsTouched.push(c.subject)}
-    if(v===1)r.queue.push(c.id);
-  }
-  r.idx++;r.flipped=false;r.done++;r.shownAt=Date.now();
-  save();checkQuests();renderRecall();updateBadge();
-  if(r.idx>=r.queue.length&&r.done>=3)confetti(50);
-  $('#flashcard')?.focus({preventScroll:true});
-}
-function flip(){const r=ui.rc;r.flipped=!r.flipped;if(r.flipped)r.flippedAt=Date.now();renderRecall();$('#flashcard')?.focus({preventScroll:true})}
-function bindSwipe(){
-  const el=$('#flashcard');if(!el)return;let sx=0,sy=0,on=false,moved=false;
-  el.addEventListener('pointerdown',e=>{if(!ui.rc.flipped)return;on=true;moved=false;sx=e.clientX;sy=e.clientY;el.classList.add('swiping')});
-  el.addEventListener('pointermove',e=>{if(!on)return;const dx=e.clientX-sx,dy=e.clientY-sy;if(Math.abs(dx)>8||Math.abs(dy)>8)moved=true;
-    el.style.transform=`rotateY(180deg) translate(${-dx*.6}px,${dy*.3}px) rotate(${-dx/30}deg)`;
-    el.dataset.tint=Math.abs(dx)>Math.abs(dy)?(dx>60?'good':dx<-60?'again':''):(dy<-60?'easy':dy>60?'hard':'')});
-  const end=e=>{if(!on)return;on=false;el.classList.remove('swiping');el.style.transform='';const tint=el.dataset.tint;el.dataset.tint='';
-    if(moved){e.preventDefault();el.dataset.swiped='1';setTimeout(()=>delete el.dataset.swiped,50);if(tint)rate({again:1,hard:2,good:3,easy:4}[tint])}};
-  el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
-}
-
 /* ---------- ANALYTICS ---------- */
 function renderAnalytics(){
   const td=today();
   const stalled=SUBJECTS.map(s=>{const l=subjectLastActivity(s.key);return{s,days:l?Math.floor((Date.now()-l)/DAY):null}}).filter(x=>x.days===null||x.days>=5).sort((a,b)=>(b.days??999)-(a.days??999));
   const decay=state.topics.map(t=>({t,r:retention(t)})).filter(x=>x.r!==null&&x.r<.7).sort((a,b)=>a.r-b.r);
-  const lapses=state.cards.filter(c=>c.lapses>0).sort((a,b)=>b.lapses-a.lapses).slice(0,8);
+  const soon=state.topics.filter(t=>{const a=retentionAt(t,0),b=retentionAt(t,7);return a!==null&&a>=.7&&b<.7});
   const block=(id,title,count,cls,body)=>`<div class="radar-block">${discHead(id,`<span class="row"><span style="font-weight:500">${title}</span><span class="pill ${count?cls:'sage'}"><span class="num">${count}</span></span></span>`)}${discBody(id,`<div style="padding-bottom:10px">${body}</div>`)}</div>`;
   $('#radar').innerHTML=`<div class="radar-sum">
     <div class="stat"><b style="color:${stalled.length?'var(--ink-coral)':'var(--ink-sage)'}">${stalled.length}</b><span>Subjects idle 5+ days</span></div>
     <div class="stat"><b style="color:${decay.length?'var(--ink-amber)':'var(--ink-sage)'}">${decay.length}</b><span>Topics below 70% retention</span></div>
-    <div class="stat"><b>${sum(lapses.map(c=>c.lapses))}</b><span>Lapses on hotspot cards</span></div></div>
+    <div class="stat"><b>${soon.length}</b><span>Will fade below 70% within 7 days</span></div></div>
   ${block('rd-stall','Stalled subjects',stalled.length,'coral',stalled.length?stalled.map(x=>`<div class="alert-row"><span class="grow">${esc(x.s.name)}</span><span class="pill coral">${x.days===null?'No activity yet':`Idle <span class="num">${x.days}d</span>`}</span><button class="btn sm" data-action="open-subject" data-subject="${x.s.key}">Open</button></div>`).join(''):'<p class="empty">Every subject was touched in the last 5 days.</p>')}
   ${block('rd-decay','Memory decay · R(t) = e^(−t/S)',decay.length,'amber',decay.length?decay.map(({t,r})=>`<div class="alert-row"><span class="grow">${esc(t.title)}<br><span class="tiny muted">${esc(subjShort(t.subject))} · last touched <span class="num">${relDays(calDays(new Date(lastTouch(t)).toISOString()))}</span></span></span>${retPill(r)}<button class="btn sm" data-action="focus-topic" data-id="${t.id}">Focus</button></div>`).join(''):'<p class="empty">Nothing studied has dropped below 70%.</p>')}
-  ${block('rd-lapse','Lapse hotspots',lapses.length,'amber',lapses.length?lapses.map(c=>`<div class="alert-row"><span class="grow">${esc(c.front)}<br><span class="tiny muted">${esc(topicById(c.topicId)?.title||'')} — revisit the root concept</span></span><span class="pill ${c.lapses>=2?'coral':'amber'}"><span class="num">${c.lapses}</span>× Again</span><button class="btn sm" data-action="review-card" data-id="${c.id}">Review</button></div>`).join(''):'<p class="empty">No repeated misses yet.</p>')}`;
+  ${block('rd-soon','Fading this week',soon.length,'amber',soon.length?soon.map(t=>`<div class="alert-row"><span class="grow">${esc(t.title)}<br><span class="tiny muted">${esc(subjShort(t.subject))} · ${pct(retentionAt(t,0))}% now → ${pct(retentionAt(t,7))}% in 7 days</span></span><span class="pill amber">due <span class="num">${fmtDate(nextReview(t))}</span></span></div>`).join(''):'<p class="empty">Nothing is about to slip.</p>')}`;
   // hours 14d
   const days=Array.from({length:14},(_,i)=>addDays(td,i-13)),es=days.map(k=>dayEntry(k)||blankDay(k)),mx=Math.max(60,...es.map(e=>e.minutesLogged));
   const tot=sum(es.map(e=>e.minutesLogged)),ver=sum(es.map(e=>e.focusMinutes)),wk=sum(es.slice(7).map(e=>e.minutesLogged)),pw=sum(es.slice(0,7).map(e=>e.minutesLogged));
@@ -1463,10 +1281,6 @@ function renderAnalytics(){
   const mh=Math.max(1,...hrs),peak=hrs.indexOf(Math.max(...hrs)),fAvg=avg(ss.filter(x=>x.focus).map(x=>x.focus));
   $('#hourOfDay').innerHTML=`<div class="hours24" role="img" aria-label="Focus minutes by hour of day">${hrs.map((m,h)=>`<i style="height:${m/mh*100}%" title="${pad(h)}:00 · ${fmtHM(m)}${foc[h].length?' · focus '+avg(foc[h]).toFixed(1):''}"></i>`).join('')}</div><div class="hours24-l"><span>00</span><span>06</span><span>12</span><span>18</span></div>
     <p class="small muted" style="margin-top:8px">${Math.max(...hrs)?`Peak block: <b class="num">${pad(peak)}:00–${pad((peak+1)%24)}:00</b>${fAvg?` · avg self-rated focus <span class="num">${fAvg.toFixed(1)}/5</span>`:''}. Schedule hard topics here.`:'Run a few timer sessions to find your peak hours.'}</p>`;
-  // accuracy
-  const w7=Array.from({length:7},(_,i)=>dayEntry(addDays(td,i-6))).filter(Boolean),cor=sum(w7.map(e=>e.correct)),ag=sum(w7.map(e=>e.again)),rv=sum(w7.map(e=>e.reviewsCount)),pr=sum(w7.map(e=>e.practice));
-  $('#accuracy').innerHTML=`<div class="stats4"><div class="stat"><b>${rv}</b><span>Due cards reviewed</span></div><div class="stat"><b style="color:var(--ink-sage)">${rv?pct(cor/rv)+'%':'—'}</b><span>Good / Easy</span></div><div class="stat"><b style="color:var(--ink-coral)">${rv?pct(ag/rv)+'%':'—'}</b><span>Again (forgot)</span></div><div class="stat"><b>${pr}</b><span>Practice (not counted)</span></div></div>
-    <p class="small muted">${rv?(cor/rv>=.85?'Above 85% — consider adding harder cards.':cor/rv<.7?'Below 70% — slow down, re-learn root concepts before adding new cards.':'Healthy 70–85% band — the sweet spot for spaced repetition.'):'No due reviews in the last 7 days.'}</p>`;
   renderHeatmap();renderGap();renderMocks();renderDest();
 }
 function renderHeatmap(){
@@ -1474,12 +1288,12 @@ function renderHeatmap(){
   const C=14,G=3,L=24,TOP=18,cells=[],months=[];let lastM=-1,active=0,sessions=0,first=null;
   for(let w=0;w<12;w++)for(let d=0;d<7;d++){
     const k=addDays(start,w*7+d);if(k>td)continue;
-    const a=map[k],sc=a?a.reviewsCount+a.minutesLogged/5:0,lv=sc===0?0:sc<8?1:sc<16?2:sc<26?3:4,fr=state.streak.frozen.includes(k);
+    const a=map[k],sc=a?a.minutesLogged:0,lv=sc===0?0:sc<30?1:sc<60?2:sc<120?3:4,fr=state.streak.frozen.includes(k);
     if(isActiveDay(a)){active++;if(!first)first=k}
     sessions+=state.sessions.filter(s=>dkey(new Date(s.start))===k).length;
     if(d===0){const m=parseKey(k).getMonth();if(m!==lastM&&(!months.length||w-months[months.length-1][0]>=3)){months.push([w,parseKey(k).toLocaleDateString('en-IN',{month:'short'})]);lastM=m}}
     const x=L+w*(C+G),y=TOP+d*(C+G);
-    cells.push(`<rect x="${x}" y="${y}" width="${C}" height="${C}" rx="3" style="fill:${fr?'var(--accent-amber)':lv?'var(--accent-sage)':'var(--bg-elevated)'};fill-opacity:${fr?.5:[1,.3,.5,.75,1][lv]}${k===td?';stroke:var(--text-primary);stroke-width:1.2':''}"><title>${fmtDate(k)}: ${a?`${a.reviewsCount} reviews, ${fmtHM(a.minutesLogged)}`:'no activity'}${fr?' (freeze)':''}</title></rect>`);
+    cells.push(`<rect x="${x}" y="${y}" width="${C}" height="${C}" rx="3" style="fill:${fr?'var(--accent-amber)':lv?'var(--accent-sage)':'var(--bg-elevated)'};fill-opacity:${fr?.5:[1,.3,.5,.75,1][lv]}${k===td?';stroke:var(--text-primary);stroke-width:1.2':''}"><title>${fmtDate(k)}: ${a?`${fmtHM(a.minutesLogged)}, ${a.topicsStudied} topics`:'no activity'}${fr?' (freeze)':''}</title></rect>`);
   }
   let gaps=0;if(first){let run=0;for(let k=first;k<=td;k=addDays(k,1)){if(activeOrFrozen(k)){if(run>=3)gaps++;run=0}else run++}if(run>=3)gaps++}
   const weeks=first?Math.max(1,Math.ceil((diffDays(td,first)+1)/7)):1,W=L+12*(C+G),H=TOP+7*(C+G);
@@ -1533,22 +1347,21 @@ function renderJournal(){
 /* =========================================================
    wiring, sync, boot
    ========================================================= */
-function updateBadge(){$('#recallBadge').hidden=!state.cards.some(c=>c.dueDate<today())}
 function applySettingsUI(){
   const s=state.settings;document.documentElement.dataset.theme=s.theme;
   $('meta[name=theme-color]').content=s.theme==='light'?'#F7F6F2':'#0C0D0E';
   $$('[data-action=theme]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.value===s.theme));
   $('#setT1').value=s.tier1Date||'';$('#setT2').value=s.tier2Date||'';
-  $('#setRecallGoal').value=s.dailyRecallGoal;$('#setStudyGoal').value=s.dailyStudyMinutes;
+$('#setStudyGoal').value=s.dailyStudyMinutes;
   $('#setFocus').value=s.focusMin;$('#setBreak').value=s.breakMin;$('#setAutoBreak').checked=!!s.autoBreak;$('#setSound').checked=!!s.sound;$('#setRemind').value=s.remindTime;
   $('#storageNote').innerHTML=storageOK?(sync.on?'Saved on this device and synced to your Claude account.':'Saved in this browser only · export a backup now and then.'):'<span style="color:var(--ink-coral)">Browser storage unavailable — export a backup.</span>';
 }
-const VIEWS=['command','focus','syllabus','recall','analytics','journal'];
+const VIEWS=['command','focus','syllabus','analytics','journal'];
 function renderView(){
-  withFocus(()=>({command:renderCommand,focus:renderFocus,syllabus:renderSyllabus,recall:renderRecall,analytics:renderAnalytics,journal:renderJournal})[ui.view]());
-  updateBadge();paintTimer();
+  withFocus(()=>({command:renderCommand,focus:renderFocus,syllabus:renderSyllabus,analytics:renderAnalytics,journal:renderJournal})[ui.view]());
+  paintTimer();
 }
-function renderAll(){applySettingsUI();renderFilters();if(!ui.editingCard)fillCardForm($('#cfSubject').value);fillJSubjects();renderView()}
+function renderAll(){applySettingsUI();renderFilters();fillJSubjects();renderView()}
 function go(view){
   if(!VIEWS.includes(view))view='command';ui.view=view;
   $$('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+view));
@@ -1563,12 +1376,6 @@ function setOpen(id,open){
 }
 function openDrawer(){const d=$('#drawer');d.removeAttribute('inert');d.classList.add('open');$('#scrim').classList.add('show');$('#drawerBtn').setAttribute('aria-expanded','true');applySettingsUI();renderCalKit();setTimeout(()=>$('[data-action=close-drawer]',d).focus(),50)}
 function closeDrawer(){const d=$('#drawer');d.classList.remove('open');d.setAttribute('inert','');$('#scrim').classList.remove('show');$('#drawerBtn').setAttribute('aria-expanded','false');$('#drawerBtn').focus()}
-function openAddCard(subject,topicId){
-  ui.editingCard=null;$('#cfSubmit').textContent='Add card';$('#cfCancel').hidden=true;$('#addTitle').textContent='Add new card';
-  fillCardForm(subject,topicId);setOpen('addCardBody',true);
-  setTimeout(()=>{$('#addCardBody').scrollIntoView({behavior:'smooth',block:'center'});$('#cfFront').focus({preventScroll:true})},120);
-}
-function startRecall(subject='all',limit=0){ui.rc.subject=subject;ui.rc.due=true;ui.rc.limit=limit;buildQueue();go('recall')}
 function focusOn(id){if(tm().phase!=='idle'){toast('A timer is already running');go('focus');return}tm().topicId=id;tm().next='focus';save();go('focus');setTimeout(()=>$('[data-action=timer-start]')?.focus(),50)}
 function fillJSubjects(){const v=$('#jSubject').value;$('#jSubject').innerHTML='<option value="">—</option>'+SUBJECTS.map(s=>`<option value="${s.key}">${esc(s.short)}</option>`).join('');$('#jSubject').value=v}
 
@@ -1590,7 +1397,7 @@ async function exportData(){
 function importData(text){
   let obj;try{obj=JSON.parse(text)}catch(e){toast('Import failed: not valid JSON');return}
   const v=validate(obj);if(!v.ok){toast('Import failed: '+v.msg);return}
-  state=normalize(obj);ui.rc.built=false;save();renderAll();toast(`Restored ${state.topics.length} topics · ${state.cards.length} cards`);
+  state=normalize(obj);save();renderAll();toast(`Restored ${state.topics.length} topics · ${state.sessions.length} sessions`);
 }
 /* ---- cross-device sync via the artifact's private per-user store ---- */
 const sync={on:false,ref:null,lastPushed:'',timer:null};
@@ -1600,7 +1407,7 @@ function adoptRemote(d){
   try{if(!d||typeof d.json!=='string')return false;const s=JSON.parse(d.json);if(!validate(s).ok)return false;
     if((+d.savedAt||0)<=(state.meta.savedAt||0)+500)return false;
     state=normalize(s);state.meta.savedAt=+d.savedAt;try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}
-    sync.lastPushed=d.json;ui.rc.built=false;renderAll();toast('Synced from your other device');return true}catch(e){return false}
+    sync.lastPushed=d.json;renderAll();toast('Synced from your other device');return true}catch(e){return false}
 }
 async function initSync(){
   const [db,user]=await Promise.all([useCap('db'),useCap('user')]);
@@ -1624,7 +1431,6 @@ async function pushNow(){
 /* ---- clicks ---- */
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-action]');if(!b)return;
-  if(b.id==='flashcard'&&b.dataset.swiped)return;
   const a=b.dataset.action,id=b.dataset.id;
   switch(a){
     case 'toggle':{const t=b.dataset.target;setOpen(t,!document.getElementById(t).classList.contains('open'));break}
@@ -1632,8 +1438,7 @@ document.addEventListener('click',e=>{
     case 'close-drawer':closeDrawer();break;
     case 'go':go(b.dataset.view);break;
     case 'theme':state.settings.theme=b.dataset.value;save();applySettingsUI();if(ui.view==='analytics')renderGap();break;
-    case 'start-recall':startRecall(b.dataset.subject||'all');break;
-    case 'quick5':if(!dueCards().length){toast('Nothing due — a focus block instead?');go('focus');break}startRecall('all',5);break;
+    case 'revise-weakest':{const w=state.topics.map(t=>({t,r:retention(t)})).filter(x=>x.r!==null).sort((a,b)=>a.r-b.r)[0];if(!w){toast('Log study on a topic first — then APEX tracks its retention');go('syllabus');break}focusOn(w.t.id);break}
     case 'quick-mistake':go('journal');$('#jTag').value='Mistake Log';setTimeout(()=>$('#jBody').focus(),60);break;
     case 'goto-focus':go('focus');break;
     case 'focus-topic':focusOn(id);break;
@@ -1642,17 +1447,9 @@ document.addEventListener('click',e=>{
     case 'cycle-status':{const t=topicById(id);if(cycleStatus(t)){save();checkQuests()}withFocus(renderSyllabus);break}
     case 'conf':{const t=topicById(id);t.confidence=+b.dataset.v;delete t.sample;save();withFocus(renderSyllabus);break}
     case 'sub':{const t=topicById(id),i=+b.dataset.i,k=t.subsDone.indexOf(i);k>=0?t.subsDone.splice(k,1):t.subsDone.push(i);save();withFocus(renderSyllabus);break}
-    case 'prompt-topic':{const t=topicById(id);go('recall');openAddCard(t.subject,t.id);break}
     case 'goto-dest':go('analytics');setTimeout(()=>{$('#destSection').scrollIntoView({behavior:'smooth'});$('#dsKeys').focus({preventScroll:true})},80);break;
-    case 'del-topic':if(armed(b)){state.topics=state.topics.filter(t=>t.id!==id);state.cards.forEach(c=>{if(c.topicId===id)c.topicId=null});save();renderSyllabus();toast('Custom topic deleted')}break;
+    case 'del-topic':if(armed(b)){state.topics=state.topics.filter(t=>t.id!==id);save();renderSyllabus();toast('Custom topic deleted')}break;
     case 'open-subject':ui.sy={q:'',tier:'all',status:'all',weight:'all'};$('#sySearch').value='';ui.open.add('sy-'+b.dataset.subject);renderFilters();go('syllabus');setTimeout(()=>document.getElementById('sy-'+b.dataset.subject)?.parentElement.scrollIntoView({behavior:'smooth'}),60);break;
-    case 'flip':flip();break;
-    case 'rate':rate(+b.dataset.v);break;
-    case 'rc-all':ui.rc.due=false;ui.rc.limit=0;buildQueue();renderRecall();break;
-    case 'review-card':{const c=state.cards.find(x=>x.id===id);ui.rc.subject='all';ui.rc.due=false;ui.rc.limit=0;buildQueue(c.id);go('recall');break}
-    case 'edit-card':{const c=state.cards.find(x=>x.id===id);ui.editingCard=id;fillCardForm(c.subject,c.topicId);$('#cfFront').value=c.front;$('#cfBack').value=c.back;$('#cfSubmit').textContent='Update card';$('#cfCancel').hidden=false;$('#addTitle').textContent='Edit card';setOpen('addCardBody',true);$('#addCardBody').scrollIntoView({behavior:'smooth',block:'center'});$('#cfFront').focus({preventScroll:true});break}
-    case 'cancel-edit-card':ui.editingCard=null;$('#cardForm').reset();$('#cfSubmit').textContent='Add card';$('#cfCancel').hidden=true;$('#addTitle').textContent='Add new card';fillCardForm();break;
-    case 'del-card':if(armed(b,'Confirm')){state.cards=state.cards.filter(c=>c.id!==id);ui.rc.queue=ui.rc.queue.filter(x=>x!==id);save();renderRecall();updateBadge();toast('Card deleted')}break;
     case 'del-mock':state.mockLogs=state.mockLogs.filter(m=>m.id!==id);save();renderMocks();break;
     case 'del-dest':state.destLogs=state.destLogs.filter(m=>m.id!==id);save();renderDest();break;
     case 'j-tag':ui.jTag=b.dataset.value;renderJournal();break;
@@ -1671,16 +1468,14 @@ document.addEventListener('click',e=>{
     case 'export':exportData();break;
     case 'copy-export':{const t=$('#exportText');t.select();(navigator.clipboard?navigator.clipboard.writeText(t.value):Promise.reject()).then(()=>toast('Copied')).catch(()=>{try{document.execCommand('copy');toast('Copied')}catch(err){toast('Select and copy manually')}});break}
     case 'import-paste':importData($('#importText').value);break;
-    case 'clear-sample':if(armed(b)){
-      state.activityLog=state.activityLog.filter(a=>!a.sample);state.sessions=state.sessions.filter(s=>!s.sample);
-      state.topics.forEach(t=>{if(t.sample){Object.assign(t,{status:'Not Started',confidence:0,lastStudiedAt:null,studyDays:[],studyCount:0,subsDone:[]});delete t.sample}});
-      state.cards.forEach(c=>{if(c.sample){Object.assign(c,{easeFactor:2.5,interval:0,repetitions:0,lapses:0,dueDate:today(),lastReviewedAt:null,lastRating:null,reviews:0});delete c.sample}});
-      ['mockLogs','destLogs','journal'].forEach(k=>state[k]=state[k].filter(x=>!x.sample));
-      ui.rc.built=false;save();renderAll();toast('Sample history cleared — it’s all you now')}break;
-    case 'reset':if(armed(b,'Tap again — erases everything')){try{localStorage.removeItem(KEY)}catch(err){}state=seedState();ui.rc.built=false;ui.open.clear();save();renderAll();closeDrawer();toast('All data reset')}break;
+    case 'reset-ask':$('#resetConfirm').hidden=false;$('#resetAsk').hidden=true;$('#resetSyncNote').textContent=sync.on?' and in your synced copy':'';break;
+    case 'reset-cancel':$('#resetConfirm').hidden=true;$('#resetAsk').hidden=false;break;
+    case 'reset':{try{localStorage.removeItem(KEY)}catch(err){}state=seedState();ui.open.clear();ui.lastSession=null;ui.editingJournal=null;ui.sy={q:'',tier:'all',status:'all',weight:'all'};$('#sySearch').value='';
+      $$('#view-analytics input,#view-journal textarea,#view-focus input').forEach(x=>{if(x.type!=='number'||x.id!=='dsDur')x.value=''});
+      save();$('#resetConfirm').hidden=true;$('#resetAsk').hidden=false;closeDrawer();renderAll();go('command');toast('All data erased — fresh start');break}
   }
 });
-$$('.tab').forEach(t=>t.addEventListener('click',()=>{if(t.dataset.view==='recall'&&ui.rc.idx>=ui.rc.queue.length){ui.rc.built=false;ui.rc.limit=0}go(t.dataset.view)}));
+$$('.tab').forEach(t=>t.addEventListener('click',()=>go(t.dataset.view)));
 $('#dock').addEventListener('keydown',e=>{const tabs=$$('.tab'),i=tabs.indexOf(document.activeElement);if(i<0)return;const n=tabs.length;let j=null;
   if(e.key==='ArrowRight')j=(i+1)%n;else if(e.key==='ArrowLeft')j=(i+n-1)%n;else if(e.key==='Home')j=0;else if(e.key==='End')j=n-1;if(j!==null){e.preventDefault();tabs[j].focus();go(tabs[j].dataset.view)}});
 document.addEventListener('keydown',e=>{
@@ -1690,15 +1485,11 @@ document.addEventListener('keydown',e=>{
   if(dOpen)return;
   const tag=(e.target.tagName||'').toLowerCase();if(['input','textarea','select'].includes(tag)||e.metaKey||e.ctrlKey||e.altKey)return;
   if(ui.view==='focus'&&e.key===' '&&tag!=='button'){e.preventDefault();const t=tm();if(t.phase==='idle'){primeAudio();timerStart(t.next==='break'?'break':'focus')}else timerPause();renderFocus();return}
-  if(ui.view!=='recall')return;
-  const onCard=e.target.id==='flashcard';
-  if((e.key===' '||(e.key==='Enter'&&onCard))&&(tag!=='button'||onCard)&&ui.rc.idx<ui.rc.queue.length){e.preventDefault();flip();return}
-  if(['1','2','3','4'].includes(e.key)&&ui.rc.flipped){e.preventDefault();rate(+e.key)}
 });
 $('#importLabel').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('#importFile').click()}});
 $('#importFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>importData(r.result);r.readAsText(f);e.target.value=''});
 const setNum=(sel,key,min,max)=>$(sel).addEventListener('change',e=>{const v=clamp(Math.round(+e.target.value||min),min,max);state.settings[key]=v;e.target.value=v;save();renderView()});
-setNum('#setRecallGoal','dailyRecallGoal',5,300);setNum('#setStudyGoal','dailyStudyMinutes',30,720);setNum('#setFocus','focusMin',10,120);setNum('#setBreak','breakMin',2,30);
+setNum('#setStudyGoal','dailyStudyMinutes',30,720);setNum('#setFocus','focusMin',10,120);setNum('#setBreak','breakMin',2,30);
 $('#setAutoBreak').addEventListener('change',e=>{state.settings.autoBreak=e.target.checked;save()});
 $('#setSound').addEventListener('change',e=>{state.settings.sound=e.target.checked;if(e.target.checked){primeAudio();chime()}save()});
 $('#setRemind').addEventListener('change',e=>{if(/^\d{2}:\d{2}$/.test(e.target.value)){state.settings.remindTime=e.target.value;save();renderCalKit()}});
@@ -1716,18 +1507,6 @@ document.addEventListener('submit',e=>{
   state.topics.push({id:uid('custom'),subject:s,chapter,title,subs:[],subsDone:[],tier:fd.get('tier'),weightage:fd.get('weightage'),status:'Not Started',confidence:0,lastStudiedAt:null,studyDays:[],studyCount:0,minutesTotal:0,custom:true});
   ui.open.add('sy-'+s);ui.open.add(`sy-${s}-${slug(chapter)}`);save();renderSyllabus();toast('Custom topic added');
 });
-$('#cfSubject').addEventListener('change',()=>fillTopicSelect());
-$('#cardForm').addEventListener('submit',e=>{
-  e.preventDefault();const front=$('#cfFront').value.trim(),back=$('#cfBack').value.trim();
-  if(!front||!back){toast('Front and back are both required');(front?$('#cfBack'):$('#cfFront')).focus();return}
-  const subject=$('#cfSubject').value,topicId=$('#cfTopic').value||null;
-  if(ui.editingCard){const c=state.cards.find(x=>x.id===ui.editingCard);Object.assign(c,{front,back,subject,topicId});ui.editingCard=null;toast('Card updated')}
-  else{state.cards.push({id:uid('card'),topicId,subject,front,back,easeFactor:2.5,interval:0,repetitions:0,lapses:0,reviews:0,dueDate:today(),lastReviewedAt:null,lastRating:null});toast('Card added — due today')}
-  $('#cfFront').value='';$('#cfBack').value='';$('#cfSubmit').textContent='Add card';$('#cfCancel').hidden=true;$('#addTitle').textContent='Add new card';
-  save();ui.rc.built=false;renderRecall();updateBadge();$('#cfFront').focus();
-});
-$('#rcSubject').addEventListener('change',e=>{ui.rc.subject=e.target.value;ui.rc.limit=0;buildQueue();renderRecall()});
-$('#rcDue').addEventListener('change',e=>{ui.rc.due=e.target.checked;ui.rc.limit=0;buildQueue();renderRecall()});
 $('#mkTier').addEventListener('change',e=>{$('#mkMax').value=e.target.selectedOptions[0].dataset.max});
 $('#mockForm').addEventListener('submit',e=>{
   e.preventDefault();const score=parseFloat($('#mkScore').value),max=parseFloat($('#mkMax').value),date=$('#mkDate').value||today();
@@ -1773,7 +1552,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(tm().p
 
 /* ---- ticking + day rollover ---- */
 let lastDay=today();
-function rollover(){if(today()!==lastDay){lastDay=today();ui.rc.built=false;reconcileStreak();save()}}
+function rollover(){if(today()!==lastDay){lastDay=today();reconcileStreak();save()}}
 setInterval(()=>{const t=tm();if(t.phase!=='idle'&&!t.pausedAt&&tLeft()<=0){timerFinish();renderView()}else paintTimer()},250);
 setInterval(()=>{rollover();if(today()!==lastDay)renderView()},60000);
 
